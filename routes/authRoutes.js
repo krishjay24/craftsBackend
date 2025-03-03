@@ -48,15 +48,20 @@ const router = express.Router();
 //   }
 // });
 
-
-
 // User Registration
 router.post("/register", async (req, res) => {
   try {
     const { firstName, lastName, category, mobile, email, password } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !category || !mobile || !email || !password) {
+    if (
+      !firstName ||
+      !lastName ||
+      !category ||
+      !mobile ||
+      !email ||
+      !password
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -73,15 +78,23 @@ router.post("/register", async (req, res) => {
     const newUser = new User({
       firstName,
       lastName,
+      gender,
+      age,
+      height,
+      color,
+      weight,
       category,
+      subcategory, 
       mobile,
       email,
       password: hashedPassword,
+      youtubeLink,
+      facebookLink,
+      instagramLink,
     });
 
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
-
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -105,15 +118,15 @@ router.post("/login", async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     res.json({ message: "Login successful", token });
-
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 });
-
 
 // Route to get all registered users
 router.get("/users", async (req, res) => {
@@ -124,7 +137,6 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
 
 // Update user details by ID
 router.put("/users/:id", async (req, res) => {
@@ -148,7 +160,6 @@ router.put("/users/:id", async (req, res) => {
   }
 });
 
-
 // Delete user by ID
 router.delete("/users/:id", async (req, res) => {
   try {
@@ -164,12 +175,9 @@ router.delete("/users/:id", async (req, res) => {
   }
 });
 
-
 // Health Check Route
 router.get("/health", (req, res) => {
   res.json({ message: "24 Crafts Backend is running successfully!" });
 });
-
-
 
 module.exports = router;

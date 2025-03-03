@@ -49,20 +49,91 @@ const router = express.Router();
 // });
 
 // User Registration
+// router.post("/register", async (req, res) => {
+//   try {
+//     const { firstName, lastName, category, mobile, email, password } = req.body;
+
+//     // Validate required fields
+//     if (
+//       !firstName ||
+//       !lastName ||
+//       !category ||
+//       !mobile ||
+//       !email ||
+//       !password
+//     ) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     // Check if user already exists
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user
+//     const newUser = new User({
+//       firstName,
+//       lastName,
+//       gender,
+//       age,
+//       height,
+//       color,
+//       weight,
+//       category,
+//       subcategory, 
+//       mobile,
+//       email,
+//       password: hashedPassword,
+//       youtubeLink,
+//       facebookLink,
+//       instagramLink,
+//     });
+
+//     await newUser.save();
+//     res.status(201).json({ message: "User registered successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// });
 router.post("/register", async (req, res) => {
   try {
-    const { firstName, lastName, category, mobile, email, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      gender,
+      age,
+      height,
+      color,
+      weight,
+      category,
+      subcategory,
+      mobile,
+      email,
+      password,
+      youtubeLink,
+      facebookLink,
+      instagramLink,
+    } = req.body;
 
     // Validate required fields
     if (
       !firstName ||
       !lastName ||
+      !gender ||
+      !age ||
+      !height ||
+      !color ||
+      !weight ||
       !category ||
       !mobile ||
       !email ||
       !password
     ) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All required fields must be provided" });
     }
 
     // Check if user already exists
@@ -74,7 +145,7 @@ router.post("/register", async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create new user
     const newUser = new User({
       firstName,
       lastName,
@@ -84,19 +155,22 @@ router.post("/register", async (req, res) => {
       color,
       weight,
       category,
-      subcategory, 
+      subcategory: subcategory || "", // Ensure it's an empty string if not provided
       mobile,
       email,
       password: hashedPassword,
-      youtubeLink,
-      facebookLink,
-      instagramLink,
+      youtubeLink: youtubeLink || "", // Set empty string if not provided
+      facebookLink: facebookLink || "",
+      instagramLink: instagramLink || "",
     });
 
+    // Save user to database
     await newUser.save();
+    
     res.status(201).json({ message: "User registered successfully" });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 

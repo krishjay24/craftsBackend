@@ -1,21 +1,44 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const Admin = require("./models/Admin");
+const Admin = require("./models/Admin"); // Ensure this model is correct
+require("dotenv").config(); // Load environment variables
 
-mongoose.connect("mongodb://127.0.0.1:27017/crafts", { useNewUrlParser: true, useUnifiedTopology: true });
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://krishnajayanth24:NqqzTBJK8SgRuoIK@craftsdatabase.ih3ml.mongodb.net/?retryWrites=true&w=majority&appName=craftsDatabase";
 
 const createAdmin = async () => {
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+  try {
+    // Connect to MongoDB Atlas
+    await mongoose.connect(MONGO_URI);
+    console.log("✅ Connected to MongoDB Atlas");
 
-  const admin = new Admin({
-    username: "admin",
-    email: "admin@example.com",
-    password: hashedPassword,
-  });
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({ email: "admin@example.com" });
+    if (existingAdmin) {
+      console.log("⚠️ Admin already exists. Exiting...");
+      mongoose.connection.close();
+      return;
+    }
 
-  await admin.save();
-  console.log("Admin created successfully");
-  mongoose.connection.close();
+    // Hash password
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    // Create new admin
+    const admin = new Admin({
+      username: "admin",
+      email: "admin@example.com",
+      password: hashedPassword,
+    });
+
+    await admin.save();
+    console.log("✅ Admin created successfully");
+
+  } catch (error) {
+    console.error("❌ Error creating admin:", error.message);
+  } finally {
+    // Close DB connection
+    mongoose.connection.close();
+  }
 };
 
+// Run the function
 createAdmin();

@@ -99,51 +99,121 @@ const router = express.Router();
 //     res.status(500).json({ message: "Server error", error });
 //   }
 // });
+
+
+
+// router.post("/register", async (req, res) => {
+//   try {
+//     const {
+//       firstName,
+//       lastName,
+//       gender,
+//       age,
+//       height,
+//       color,
+//       weight,
+//       category,
+//       subcategory,
+//       mobile,
+//       email,
+//       password,
+//       youtubeLink,
+//       facebookLink,
+//       instagramLink,
+//     } = req.body;
+
+//     // Validate required fields
+//     if (
+//       !firstName ||
+//       !lastName ||
+//       !gender ||
+//       !age ||
+//       !height ||
+//       !color ||
+//       !weight ||
+//       !category ||
+//       !mobile ||
+//       !email ||
+//       !password
+//     ) {
+//       return res.status(400).json({ message: "All required fields must be provided" });
+//     }
+
+//     // Check if user already exists
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create new user
+//     const newUser = new User({
+//       firstName,
+//       lastName,
+//       gender,
+//       age,
+//       height,
+//       color,
+//       weight,
+//       category,
+//       subcategory: subcategory || "", // Ensure it's an empty string if not provided
+//       mobile,
+//       email,
+//       password: hashedPassword,
+//       youtubeLink: youtubeLink || "", // Set empty string if not provided
+//       facebookLink: facebookLink || "",
+//       instagramLink: instagramLink || "",
+//     });
+
+//     // Save user to database
+//     await newUser.save();
+    
+//     res.status(201).json({ message: "User registered successfully" });
+
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// });
+
+
+
+
+
 router.post("/register", async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      gender,
-      age,
-      height,
-      color,
-      weight,
-      category,
-      subcategory,
-      mobile,
-      email,
-      password,
-      youtubeLink,
-      facebookLink,
-      instagramLink,
-    } = req.body;
-
-    // Validate required fields
-    if (
-      !firstName ||
-      !lastName ||
-      !gender ||
-      !age ||
-      !height ||
-      !color ||
-      !weight ||
-      !category ||
-      !mobile ||
-      !email ||
-      !password
-    ) {
-      return res.status(400).json({ message: "All required fields must be provided" });
-    }
+    const { firstName, lastName, gender, age, height, color, weight, mobile, email, password, category, subcategory } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists!" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    let categoryId = null;
+    let subcategoryId = null;
+
+    // Check if category exists in DB
+    if (category) {
+      const existingCategory = await Category.findById(category);
+      if (!existingCategory) {
+        return res.status(400).json({ message: "Invalid category!" });
+      }
+      categoryId = existingCategory._id;
+    }
+
+    // Check if subcategory exists in DB
+    if (subcategory) {
+      const existingSubcategory = await Subcategory.findById(subcategory);
+      if (!existingSubcategory) {
+        return res.status(400).json({ message: "Invalid subcategory!" });
+      }
+      subcategoryId = existingSubcategory._id;
+    }
 
     // Create new user
     const newUser = new User({
@@ -154,25 +224,23 @@ router.post("/register", async (req, res) => {
       height,
       color,
       weight,
-      category,
-      subcategory: subcategory || "", // Ensure it's an empty string if not provided
       mobile,
       email,
       password: hashedPassword,
-      youtubeLink: youtubeLink || "", // Set empty string if not provided
-      facebookLink: facebookLink || "",
-      instagramLink: instagramLink || "",
+      category: categoryId,
+      subcategory: subcategoryId
     });
 
-    // Save user to database
     await newUser.save();
-    
-    res.status(201).json({ message: "User registered successfully" });
 
+    res.status(201).json({ message: "User registered successfully!", user: newUser });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 
 // User Login
 router.post("/login", async (req, res) => {

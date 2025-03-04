@@ -1,19 +1,49 @@
+// const jwt = require("jsonwebtoken");
+
+// const authMiddleware = (req, res, next) => {
+//   const token = req.header("Authorization");
+
+//   if (!token) {
+//     return res.status(401).json({ message: "No token, authorization denied" });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     req.user = decoded;
+//     next();
+//   } catch (error) {
+//     res.status(401).json({ message: "Invalid token" });
+//   }
+// };
+
+// module.exports = authMiddleware;
+
+
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const authMiddleware = (req, res, next) => {
-  const token = req.header("Authorization");
-
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
-
+// Middleware to verify token
+exports.verifyToken = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const token = req.header("Authorization");
+    if (!token) return res.status(403).json({ message: "Access Denied!" });
+
+    const decoded = jwt.verify(token.replace("Bearer ", ""), "your_secret_key"); // Use environment variable for secret key
+    req.user = await User.findById(decoded.id).select("-password");
+
+    if (!req.user) return res.status(403).json({ message: "User not found!" });
+
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid Token" });
   }
 };
 
-module.exports = authMiddleware;
+// Middleware to check if user is admin
+exports.isAdmin = (req, res, next) => {
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).json({ message: "Admin access required!" });
+  }
+  next();
+};
+
